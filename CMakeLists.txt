@@ -1,52 +1,77 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.12)
 project(geograsp)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-Wall -Wunused-result -Wextra -Wpedantic)
+# Force C++17
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
-#find_package(catkin REQUIRED COMPONENTS
-  #pcl_conversions
-  #pcl_ros
-  #roscpp
-  #sensor_msgs
-#)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic -O3)
+endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(pcl_ros REQUIRED)
-find_package(roscpp REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-#catkin_package(
-  #CATKIN_DEPENDS pcl_conversions pcl_ros roscpp sensor_msgs
-  #INCLUDE_DIRS include
-  #LIBRARIES GeoGrasp
-#)
-
-ament_export_dependencies(pcl_conversions pcl_ros roscpp sensor_msgs)
-ament_export_include_directories(include)
-ament_export_libraries(GeoGrasp)
-
-include_directories(include)
-add_library(GeoGrasp
-  lib/${PROJECT_NAME}/GeoGrasp.cpp
+add_library(geograsp SHARED
+    lib/geograsp/GeoGrasp.cpp
 )
 
-add_executable(cloud_processor src/cloud_processor.cpp)
-
-target_link_libraries(cloud_processor
-  GeoGrasp
-  ${catkin_LIBRARIES}
+target_include_directories(geograsp
+    PUBLIC
+    # include
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
 )
 
-install(TARGETS GeoGrasp
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
+add_definitions(${EIGEN_DEFINITIONS})
+
+add_executable(geograsp_exe src/cloud_processor.cpp)
+
+ament_target_dependencies(geograsp
+    ament_cmake
+    rclcpp
+    pcl_conversions
+    pcl_ros
+    eigen3_cmake_module
+    Eigen3
+    sensor_msgs
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-    DESTINATION include/${PROJECT_NAME}
+target_link_libraries(geograsp_exe geograsp)
+target_link_libraries(geograsp pcl_visualization)
+
+ament_export_targets(export_geograsp HAS_LIBRARY_TARGET)
+ament_export_dependencies(
+    ament_cmake
+    rclcpp
+    pcl_conversions
+    pcl_ros
+    eigen3_cmake_module
+    Eigen3
+    sensor_msgs
 )
+
+install(
+    DIRECTORY include/
+    DESTINATION include
+)
+
+install(
+    TARGETS geograsp geograsp_exe
+    EXPORT export_geograsp
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION lib/${PROJECT_NAME}
+    INCLUDES DESTINATION include
+)
+
 ament_package()

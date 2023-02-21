@@ -1,7 +1,9 @@
+#include <memory>
+#include <cstdio>
 #include <iostream>
 
-#include <ros/ros.h>
-#include <sensor_msgs/PointCloud2.h>
+#include <rclcpp/rclcpp.hpp>
+#include "sensor_msgs/msg/point_cloud2.hpp"
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -25,7 +27,7 @@
 pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("Cloud viewer"));
 
 // callback signature
-void cloudCallback(const sensor_msgs::PointCloud2ConstPtr & inputCloudMsg) {
+void cloudCallback(const std::shared_ptr<sensor_msgs::msg::PointCloud2> inputCloudMsg) {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
   pcl::fromROSMsg(*inputCloudMsg, *cloud);
 
@@ -198,19 +200,25 @@ void cloudCallback(const sensor_msgs::PointCloud2ConstPtr & inputCloudMsg) {
 }
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "cloud_processor");
+  //ros::init(argc, argv, "cloud_processor");
+  rclcpp::init(argc, argv);
 
   viewer->initCameraParameters();
   viewer->addCoordinateSystem(0.1);
 
-  ros::NodeHandle n("~");
-  std::string cloudTopic;
+  auto node = rclcpp::Node::make_shared("geograsp");
   
-  n.getParam("topic", cloudTopic);
+  //n.getParam("topic", cloudTopic);
+  node->declare_parameter("topic", "/cloud_pcd");
+  std::string cloudTopic = node->get_parameter("topic").get_parameter_value().get<std::string>();
 
-  ros::Subscriber sub = n.subscribe<sensor_msgs::PointCloud2>(cloudTopic, 1, cloudCallback);
+  std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::PointCloud2>> pc2_sub;
 
-  ros::spin();
+  pc2_sub = node->create_subscription<sensor_msgs::msg::PointCloud2>(cloudTopic, rclcpp::QoS(1), cloudCallback); 
 
+  //ros::Subscriber sub = n.subscribe<sensor_msgs::msg::PointCloud2>(cloudTopic, 1, cloudCallback);
+
+  rclcpp::spin(node);
+  rclcpp::shutdown();
   return 0;
 }

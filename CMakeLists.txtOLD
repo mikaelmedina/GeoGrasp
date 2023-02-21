@@ -1,0 +1,77 @@
+cmake_minimum_required(VERSION 3.12)
+project(geograsp)
+
+# Force C++17
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-Wall -Wunused-result -Wextra -Wpedantic)
+endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+find_package(ament_cmake REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3 3.4 REQUIRED)
+
+#ament_export_dependencies(
+    #pcl_conversions
+    #pcl_ros 
+    #rclcpp
+    #eigen3_cmake_module
+    #Eigen3
+    #sensor_msgs
+#)
+
+#ament_export_include_directories(include)
+#ament_export_libraries(GeoGrasp)
+
+include_directories(include)
+
+add_executable(cloud_processor src/cloud_processor.cpp)
+
+add_library(GeoGrasp
+  lib/${PROJECT_NAME}/GeoGrasp.cpp
+)
+
+target_include_directories(cloud_processor
+  PUBLIC
+    # include
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+ament_target_dependencies(cloud_processor
+    pcl_conversions
+    pcl_ros 
+    rclcpp
+    eigen3_cmake_module
+    Eigen3
+    sensor_msgs
+)
+
+add_definitions(${EIGEN_DEFINITIONS})
+
+#target_link_libraries(cloud_processor
+  #GeoGrasp
+  #${catkin_LIBRARIES}
+#)
+
+
+install(TARGETS cloud_processor
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY include/
+    DESTINATION include
+)
+
+ament_export_include_directories(include)
+ament_package()
