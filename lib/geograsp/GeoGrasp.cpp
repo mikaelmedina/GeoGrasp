@@ -1,4 +1,5 @@
 #include "geograsp/GeoGrasp.h"
+#include "rclcpp/rclcpp.hpp"
 
 const float GeoGrasp::kGraspPlaneApprox = 0.007;
 const float GeoGrasp::kCloudNormalRadius = 0.03;
@@ -524,6 +525,8 @@ void GeoGrasp::buildGraspingPlane(const pcl::PointXYZ & planePoint,
                                    graspHyperplane.coeffs()[1],
                                    graspHyperplane.coeffs()[2],
                                    graspHyperplane.coeffs()[3]);
+  rclcpp::Logger logger = rclcpp::get_logger("rcl");
+  RCLCPP_INFO(logger, "test");
   pcl::SampleConsensusModelPlane<pcl::PointNormal>::Ptr planeSAC(new pcl::SampleConsensusModelPlane<pcl::PointNormal>(inputCloud));
   pcl::PointIndices::Ptr graspPlaneIndices(new pcl::PointIndices);
 

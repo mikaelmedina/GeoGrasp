@@ -209,7 +209,7 @@ int main(int argc, char **argv) {
   auto node = rclcpp::Node::make_shared("geograsp");
   
   //n.getParam("topic", cloudTopic);
-  node->declare_parameter("topic", "/cloud_pcd");
+  node->declare_parameter("topic", "/world/bluerov_world/model/bluerov2/link/camera_sensor_link/sensor/camera/points");
   std::string cloudTopic = node->get_parameter("topic").get_parameter_value().get<std::string>();
 
   std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::PointCloud2>> pc2_sub;
