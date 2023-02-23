@@ -1,3 +1,7 @@
+# About this fork
+
+I wanted to use this in a ROS2 environment, spent a couple days trying to make it work, but moved on to another solution.
+
 # GeoGrasp
 Geometry-based method for computing grasping points on 3D point clouds. Find more details at: https://www.researchgate.net/publication/331358070_Fast_Geometry-based_Computation_of_Grasping_Points_on_Three-dimensional_Point_Clouds
 
